@@ -1,0 +1,19 @@
+👋 Assalomu alaykum!
+KAITOUC botiga xush kelibsiz!
+def selling_price(midasbuy_price):
+    price = midasbuy_price * 1.10
+    return round(price / 1000) * 1000
+
+
+# Misol
+midasbuy_prices = {
+    "1107+921 UC": 152887,
+    "2250+1558 UC": 356736,
+    "3600+2302 UC": 524465,
+    "5760+2734 UC": 687991,
+    "7488+3129 UC": 796264,
+    "9216+3525 UC": 938556,
+}
+
+for uc, price in midasbuy_prices.items():
+    print(uc, "→", selling_price(price), "so'm")
