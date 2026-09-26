@@ -1,20 +1,54 @@
-👋 Assalomu alaykum!
-KAITOUC botiga xush kelibsiz!
+
 def selling_price(midasbuy_price):
     price = midasbuy_price * 1.10
     return round(price / 1000) * 1000
 
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import ContextTypes
 
-# Misol
-midasbuy_prices = {
-    "1107+921 UC": 152887,
-    "2250+1558 UC": 356736,
-    "3600+2302 UC": 524465,
-    "5760+2734 UC": 687991,
-    "7488+3129 UC": 796264,
-    "9216+3525 UC": 938556,
-}
+async def buy_uc(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("💎 60 UC — 12 000 so'm", callback_data="uc_60")],
+        [InlineKeyboardButton("💎 300 UC — 62 000 so'm", callback_data="uc_300")],
+        [InlineKeyboardButton("💎 600 UC — 124 000 so'm", callback_data="uc_600")],
+        [InlineKeyboardButton("💎 2028 UC — 165 000 so'm", callback_data="uc_2028")],
+        [InlineKeyboardButton("💎 1500 UC — 310 000 so'm", callback_data="uc_1500")],
+        [InlineKeyboardButton("💎 3808 UC — 385 000 so'm", callback_data="uc_3808")],
+        [InlineKeyboardButton("💎 5902 UC — 566 000 so'm", callback_data="uc_5902")],
+        [InlineKeyboardButton("💎 8494 UC — 743 000 so'm", callback_data="uc_8494")],
+        [InlineKeyboardButton("💎 10617 UC — 860 000 so'm", callback_data="uc_10617")],
+        [InlineKeyboardButton("💎 6100 UC — 1 242 000 so'm", callback_data="uc_6100")],
+        [InlineKeyboardButton("💎 12741 UC — 1 014 000 so'm", callback_data="uc_12741")],
+        [InlineKeyboardButton("⬅️ Orqaga", callback_data="back")]
+    ]
 
-for uc, price in midasbuy_prices.items():
-    print(uc, "→", selling_price(price), "so'm")
-BOT_TOKEN = 8665430919:AAGvNg7NaEPRTSFYfS7Wnz-E-aS-BqqJh4o
+    await update.message.reply_text(
+        "🎮 PUBG MOBILE UC\n\nKerakli UC paketini tanlang:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+async def card_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    await query.edit_message_text(
+        "💳 Karta orqali to‘lov\n\n"
+        "🏦 Hamkorbank\n"
+        "💳 Karta: 9860 1601 4992 1316\n"
+        "👤 Karta egasi: Abdullayev Ramazon\n\n"
+        "To‘lov qilgach, chekni yuboring."
+    )
+
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Assalomu alaykum!\n"
+        "KAITOUC botiga xush kelibsiz!"
+    )
+
+app = Application.builder().token("8665430919:AAF4AFf_kfZ1GSvhHa_iwJu5T_5AEMOzabQ").build()
+
+app.add_handler(CommandHandler("start", start))
+
+app.run_polling()
