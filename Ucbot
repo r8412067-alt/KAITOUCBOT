@@ -1,0 +1,203 @@
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    CallbackQueryHandler,
+    MessageHandler,
+    ContextTypes,
+    filters,
+)
+import uuid
+
+TOKEN = "YANGI_TOKENINGNI_SHU_YERGA"
+
+PACKAGES = {
+    "uc_60": ("60 UC", "12 000 so'm"),
+    "uc_300": ("300 UC", "62 000 so'm"),
+    "uc_600": ("600 UC", "124 000 so'm"),
+    "uc_1500": ("1500 UC", "310 000 so'm"),
+    "uc_2028": ("2028 UC", "165 000 so'm"),
+    "uc_3808": ("3808 UC", "385 000 so'm"),
+}
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("💎 UC sotib olish", callback_data="buy")],
+        [InlineKeyboardButton("📦 Buyurtmam", callback_data="orders")],
+        [InlineKeyboardButton("👤 Profil", callback_data="profile")],
+        [InlineKeyboardButton("📞 Admin", callback_data="admin")],
+    ]
+
+    await update.message.reply_text(
+        "👋 Assalomu alaykum!\n\n"
+        "💎 KAITOUC botiga xush kelibsiz!\n\n"
+        "Kerakli bo‘limni tanlang:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+
+async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    keyboard = []
+
+    for key, (name, price) in PACKAGES.items():
+        keyboard.append([
+            InlineKeyboardButton(
+                f"💎 {name} — {price}",
+                callback_data=key
+            )
+        ])
+
+    keyboard.append([
+        InlineKeyboardButton("⬅️ Orqaga", callback_data="back")
+    ])
+
+    await query.edit_message_text(
+        "💎 PUBG MOBILE UC\n\n"
+        "Kerakli UC paketini tanlang:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+
+async def package_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    package = PACKAGES.get(query.data)
+
+    if not package:
+        return
+
+    context.user_data["package"] = package
+
+    await query.edit_message_text(
+        f"✅ Tanlandi: {package[0]}\n"
+        f"💰 Narxi: {package[1]}\n\n"
+        "🆔 Endi PUBG ID raqamingizni yuboring."
+    )
+
+    context.user_data["waiting_id"] = True
+
+
+async def receive_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.user_data.get("waiting_id"):
+        return
+
+    pubg_id = update.message.text.strip()
+
+    if not pubg_id.isdigit():
+        await update.message.reply_text(
+            "❌ PUBG ID faqat raqamlardan iborat bo‘lishi kerak."
+        )
+        return
+
+    context.user_data["pubg_id"] = pubg_id
+    context.user_data["waiting_id"] = False
+
+    package = context.user_data["package"]
+
+    keyboard = [
+        [InlineKeyboardButton("💳 Karta orqali to‘lash", callback_data="payment")],
+        [InlineKeyboardButton("❌ Bekor qilish", callback_data="cancel")]
+    ]
+
+    await update.message.reply_text(
+        f"🧾 Buyurtma\n\n"
+        f"💎 Paket: {package[0]}\n"
+        f"💰 Narx: {package[1]}\n"
+        f"🆔 PUBG ID: {pubg_id}\n\n"
+        "To‘lov usulini tanlang:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+
+async def payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    order_id = "KAITO-" + str(uuid.uuid4())[:8].upper()
+    context.user_data["order_id"] = order_id
+
+    await query.edit_message_text(
+        f"💳 TO‘LOV\n\n"
+        f"🏦 Hamkorbank\n"
+        f"💳 Karta: KARTA RAQAMINGIZ\n"
+        f"👤 Karta egasi: ISM FAMILIYA\n\n"
+        f"🧾 Buyurtma: {order_id}\n\n"
+        "To‘lovni amalga oshirgach, chekni shu botga yuboring."
+    )
+
+    context.user_data["waiting_receipt"] = True
+
+
+async def receipt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.user_data.get("waiting_receipt"):
+        return
+
+    if update.message.photo:
+        context.user_data["waiting_receipt"] = False
+
+        await update.message.reply_text(
+            "✅ Chek qabul qilindi!\n\n"
+            f"🧾 Buyurtma: {context.user_data.get('order_id')}\n\n"
+            "⏳ Buyurtmangiz tekshirilmoqda."
+        )
+    else:
+        await update.message.reply_text(
+            "📸 Iltimos, to‘lov chekini rasm ko‘rinishida yuboring."
+        )
+
+
+async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+
+    if query.data == "buy":
+        await buy(update, context)
+
+    elif query.data in PACKAGES:
+        await package_selected(update, context)
+
+    elif query.data == "payment":
+        await payment(update, context)
+
+    elif query.data == "cancel":
+        await query.edit_message_text("❌ Buyurtma bekor qilindi.")
+
+    elif query.data == "profile":
+        await query.answer()
+        await query.edit_message_text(
+            f"👤 Profil\n\n"
+            f"Telegram ID: {update.effective_user.id}"
+        )
+
+    elif query.data == "orders":
+        await query.answer()
+        await query.edit_message_text(
+            "📦 Buyurtmalar\n\n"
+            "Hozircha buyurtmalar tarixi mavjud emas."
+        )
+
+    elif query.data == "admin":
+        await query.answer()
+        await query.edit_message_text(
+            "📞 Admin bilan bog‘lanish:\n"
+            "@ADMIN_USERNAME"
+        )
+
+    elif query.data == "back":
+        await query.answer()
+        await query.edit_message_text(
+            "🏠 Bosh menyu uchun /start buyrug‘ini yuboring."
+        )
+
+
+app = Application.builder().token(TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CallbackQueryHandler(callback))
+app.add_handler(MessageHandler(filters.PHOTO, receipt))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, receive_id))
+
+app.run_polling()
