@@ -17,3 +17,4 @@ midasbuy_prices = {
 
 for uc, price in midasbuy_prices.items():
     print(uc, "→", selling_price(price), "so'm")
+BOT_TOKEN = 8665430919:AAGvNg7NaEPRTSFYfS7Wnz-E-aS-BqqJh4o
