@@ -9,7 +9,7 @@ from telegram.ext import (
 )
 import uuid
 
-TOKEN = "YANGI_TOKENINGNI_SHU_YERGA"
+TOKEN = "8665430919:AAF4AFf_kfZ1GSvhHa_iwJu5T_5AEMOzabQ"
 
 PACKAGES = {
     "uc_60": ("60 UC", "12 000 so'm"),
